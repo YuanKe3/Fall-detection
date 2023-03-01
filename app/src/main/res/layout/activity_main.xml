@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+    <FrameLayout
+        android:id="@+id/preview_display_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:ignore="MissingConstraints">
+        <TextView
+            android:id="@+id/no_camera_access_view"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:gravity="center"
+            android:text="" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:background="@drawable/round_tab"
+        android:layout_gravity="center|bottom"
+        android:layout_marginBottom="10dp"
+        android:layout_width="330dp"
+        android:gravity="center"
+        android:layout_height="wrap_content">
+        <TextView
+            android:onClick="changeCamera"
+            android:clickable="true"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textColor="@color/textcolor_selector"
+            android:text="切换摄像头" />
+        <TextView
+            android:id="@+id/contactTxt"
+            android:clickable="true"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textColor="@color/textcolor_selector"
+            android:text="紧急联系人" />
+        <TextView
+            android:id="@+id/captureTxt"
+            android:clickable="true"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textColor="@color/textcolor_selector"
+            android:text="跌倒统计" />
+    </LinearLayout>
+</FrameLayout>

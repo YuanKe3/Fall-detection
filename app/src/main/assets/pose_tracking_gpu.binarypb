@@ -1,0 +1,8 @@
+
+…ConstantSidePacketCalculator2PACKET:enable_segmentationBI
+Atype.googleapis.com/mediapipe.ConstantSidePacketCalculatorOptions
+
+`FlowLimiterCalculatorinput_videoFINISHED:output_video"throttled_input_videoj
+FINISHED
+×PoseLandmarkGpuIMAGE:throttled_input_video"LANDMARKS:pose_landmarks"#SEGMENTATION_MASK:segmentation_mask"DETECTION:pose_detection"%ROI_FROM_LANDMARKS:roi_from_landmarks*'ENABLE_SEGMENTATION:enable_segmentation
+³PoseRendererGpuIMAGE:throttled_input_videoLANDMARKS:pose_landmarks#SEGMENTATION_MASK:segmentation_maskDETECTION:pose_detectionROI:roi_from_landmarks"IMAGE:output_videoRinput_videozoutput_videozpose_landmarks

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="echarts.min.js"></script>
+  <title>Document</title>
+</head>
+<body>
+<div id="main" style="height: 244px"></div>
+<script type="text/javascript">
+      let x = ['', '', '', '', '', '', '']
+      let y = [0, 0, 0, 0, 0, 0, 0]
+      if (window.nativeMethod) {
+        x = JSON.parse(nativeMethod.x())
+        y = JSON.parse(nativeMethod.y())
+      }
+      const myChart1 = echarts.init(document.getElementById('main'))
+      const option = {
+        title: {
+          text: '七日内摔倒次数',
+          textStyle: {
+            color: '#2DC3FB',
+            fontWeight: 'bold',
+            fontSize: '16'
+          },
+          padding: [20, 0, 0, 0]
+        },
+        tooltip: {
+          backgroundColor: '#31516B',
+          opacity: 0.3,
+          trigger: 'axis',
+          axisPointer: {
+            // 焦点处样式
+            type: 'cross'
+          },
+          extraCssText: 'text-align: center;',
+          //在这里设置
+          formatter: '{b0}<br/>{c0}次',
+          textStyle: {
+            color: 'rgba(145, 201, 246, 1)'
+          }
+        },
+        legend: {
+          data: ['摔倒次数'],
+          textStyle: {
+            color: '#738CA0'
+          },
+          itemWidth: 10,
+          itemHeight: 10,
+          icon: 'rect',
+          right: 16,
+          top: 16
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          axisTick: {
+            show: false
+          },
+          axisLabel: {
+            color: '#20dbfd',
+            interval: 0,
+          },
+          axisLine: {
+            lineStyle: {
+              color: '#20dbfd'
+            }
+          },
+          data: x
+        },
+        yAxis: {
+          type: 'value',
+          min: 0,
+          interval: 1,
+          // max: 100,
+          axisTick: {
+            show: false
+          },
+          axisLabel: {
+            // 折线下方阴影
+            color: '#20dbfd'
+          },
+          axisLine: {
+            // 坐标轴线
+            lineStyle: {
+              color: '#20dbfd'
+            }
+          },
+          splitLine: {
+            // y轴 辅助线
+            show: false
+          }
+        },
+        series: [
+          {
+            name: '摔倒次数',
+            type: 'line',
+            smooth: false,
+            stack: '摔倒次数',
+            symbol: 'circle', // 拐点为实心的 默认为空心
+            itemStyle: {
+              color: '#72F5FF'
+            },
+            lineStyle: {
+              shadowBlur: 5,
+              color: '#17D5E3',
+              shadow: '0px 5px 1px 0px rgba(0, 0, 0, 0.41)'
+            },
+            areaStyle: {
+              opacity: 0.5,
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                {
+                  offset: 0,
+                  color: 'rgba(13, 182, 252, 0.5)'
+                },
+                {
+                  offset: 1,
+                  color: 'rgba(13, 182, 252, 0)'
+                }
+              ])
+            },
+            data: y
+          }
+        ]
+      }
+      //先初始化默认的echarts图 ，setData() 这个方法是来接收需要改变echarts图的地方
+      myChart1.setOption(option)
+      function setData(option) {
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('main'))
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option)
+      }
+    </script>
+</body>
+</html>
