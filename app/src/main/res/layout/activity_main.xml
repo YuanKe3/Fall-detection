@@ -32,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:textColor="@color/textcolor_selector"
-            android:text="切换摄像头" />
+            android:text="切换" />
         <TextView
             android:id="@+id/contactTxt"
             android:clickable="true"
@@ -41,7 +41,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:textColor="@color/textcolor_selector"
-            android:text="紧急联系人" />
+            android:text="联系" />
         <TextView
             android:id="@+id/captureTxt"
             android:clickable="true"
@@ -50,6 +50,24 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:textColor="@color/textcolor_selector"
-            android:text="跌倒统计" />
+            android:text="统计" />
+        <TextView
+            android:id="@+id/healthTxt"
+            android:clickable="true"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textColor="@color/textcolor_selector"
+            android:text="资讯" />
+<!--        <TextView-->
+<!--            android:id="@+id/chatTxt"-->
+<!--            android:clickable="true"-->
+<!--            android:layout_weight="1"-->
+<!--            android:gravity="center"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:textColor="@color/textcolor_selector"-->
+<!--            android:text="问医" />-->
     </LinearLayout>
 </FrameLayout>

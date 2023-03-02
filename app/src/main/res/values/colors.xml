@@ -9,4 +9,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="textColor">#FF000000</color>
     <color name="focus">#07c160</color>
+    <color name="grey">#999999</color>
 </resources>

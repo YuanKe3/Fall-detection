@@ -6,14 +6,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".ImageCaptureView">
-
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_margin="5dp"
       android:layout_gravity="center"
-      android:gravity="center"
+      android:layout_margin="5dp"
       android:background="@drawable/round_tip1"
+      android:gravity="center"
       android:orientation="vertical"
       android:padding="10dp">
 
@@ -26,9 +25,9 @@
 
     <TextView
         android:id="@+id/longitudeAndLatitude"
-        android:text=""
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="" />
   </LinearLayout>
 
   <TextView
@@ -36,9 +35,9 @@
       android:layout_height="wrap_content"
       android:layout_marginBottom="5dp"
       android:padding="5dp"
-      android:textFontWeight="1000"
       android:text="下为七日内摔倒时的地点标点："
       android:textColor="#4d85ff"
+      android:textFontWeight="1500"
       android:textSize="17sp" />
 
   <com.amap.api.maps.MapView

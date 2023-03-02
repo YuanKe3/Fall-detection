@@ -90,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
 
   private TextView contactTxt;
   private TextView captureTxt;
+  private TextView healthTxt;
+  private TextView chatTxt;
 
   private ContactDatabase mDatabase;
 
@@ -161,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
 
     contactTxt = findViewById(R.id.contactTxt);
     captureTxt = findViewById(R.id.captureTxt);
+    healthTxt = findViewById(R.id.healthTxt);
 
     contactTxt.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -172,6 +175,12 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public void onClick(View view) {
         startActivity(new Intent(MainActivity.this, ImageCaptureView.class));
+      }
+    });
+    healthTxt.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        startActivity(new Intent(MainActivity.this, HealthyNews.class));
       }
     });
 
