@@ -220,7 +220,7 @@ public class ImageCaptureView extends AppCompatActivity {
     webView.getSettings().setJavaScriptEnabled(true);
     webView.addJavascriptInterface(new JsInterface(), "nativeMethod");
     webView.setWebChromeClient(new WebChromeClient());
-    webView.loadUrl("");
+    webView.loadUrl("file:///android_asset/chart.html");
   }
 
   // 添加点
