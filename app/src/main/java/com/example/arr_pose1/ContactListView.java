@@ -26,7 +26,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.arr_pose1.model.Contact;
-import com.example.arr_pose1.room.ContactDatabase;
+import com.example.arr_pose1.room.Contact.ContactDatabase;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -100,7 +100,7 @@ public class ContactListView extends AppCompatActivity {
                     mSelectedPosition = position;
                     adapter.notifyDataSetChanged();
 
-                    com.example.arr_pose1.room.Contact contact = new com.example.arr_pose1.room.Contact();
+                    com.example.arr_pose1.room.Contact.Contact contact = new com.example.arr_pose1.room.Contact.Contact();
                     mDatabase.getContactDao().deleteAllContact();
                     contact.setName(contactList.get(position).getName());
                     contact.setPhone(contactList.get(position).getPhone());

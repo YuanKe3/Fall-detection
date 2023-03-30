@@ -1,4 +1,4 @@
-package com.example.arr_pose1.room;
+package com.example.arr_pose1.room.Graph;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;

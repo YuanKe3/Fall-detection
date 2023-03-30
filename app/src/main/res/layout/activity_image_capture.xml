@@ -1,52 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingBottom="15dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".ImageCaptureView">
-  <LinearLayout
+    android:layout_height="match_parent">
+
+  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_gravity="center"
-      android:layout_margin="5dp"
-      android:background="@drawable/round_tip1"
-      android:gravity="center"
+      android:layout_height="match_parent"
       android:orientation="vertical"
-      android:padding="10dp">
+      tools:context=".ImageCaptureView">
 
-    <TextView
-        android:id="@+id/location"
+    <WebView
+        android:id="@+id/ordercharts_main"
+        android:layout_marginBottom="20dp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textSize="20sp" />
+        android:layout_height="wrap_content" />
 
-    <TextView
-        android:id="@+id/longitudeAndLatitude"
-        android:layout_width="wrap_content"
+
+    <com.amap.api.maps.MapView
+        android:id="@+id/map"
+        android:layout_margin="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="300dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="" />
+        android:layout_gravity="center"
+        android:layout_margin="5dp"
+        android:background="@drawable/round_tip2"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+      <TextView
+          android:id="@+id/location"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text=""
+          android:textSize="20sp" />
+
+      <TextView
+          android:id="@+id/longitudeAndLatitude"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="" />
+    </LinearLayout>
   </LinearLayout>
-
-  <TextView
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="5dp"
-      android:padding="5dp"
-      android:text="下为七日内摔倒时的地点标点："
-      android:textColor="#4d85ff"
-      android:textFontWeight="1500"
-      android:textSize="17sp" />
-
-  <com.amap.api.maps.MapView
-      android:id="@+id/map"
-      android:layout_width="match_parent"
-      android:layout_height="300dp" />
-
-  <WebView
-      android:id="@+id/ordercharts_main"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content" />
-</LinearLayout>
+</ScrollView>

@@ -1,26 +1,19 @@
 package com.example.arr_pose1;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
-import android.location.Location;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.util.Size;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,15 +24,16 @@ import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
-import com.example.arr_pose1.room.ContactDatabase;
-import com.example.arr_pose1.room.Graph;
-import com.example.arr_pose1.room.GraphDatabase;
+import com.example.arr_pose1.room.Contact.ContactDatabase;
+import com.example.arr_pose1.room.Graph.Graph;
+import com.example.arr_pose1.room.Graph.GraphDatabase;
+import com.example.arr_pose1.room.Record.Record;
+import com.example.arr_pose1.room.Record.RecordDatabase;
 import com.google.mediapipe.components.CameraHelper;
 import com.google.mediapipe.components.CameraXPreviewHelper;
 import com.google.mediapipe.components.ExternalTextureConverter;
@@ -94,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
   private TextView chatTxt;
 
   private ContactDatabase mDatabase;
+  private RecordDatabase recordDatabase;
 
   // 权限管理
   // 1.本 Activity 需要申请两个权限：发信息和写入存储
@@ -143,8 +138,23 @@ public class MainActivity extends AppCompatActivity {
   // 两髋中心点 - start
   private float midHipX_start = 0;
   private float midHipY_start = 0;
-  // 当 radio 达到 0.25 时，开始累加，当 quickFallAndNotReachGroundFlag <= 50 时，只需要检测高度
+  // 膝盖 x/y 坐标 - start
+  private float leftKneeX_start = 0;
+  private float rightKneeX_start = 0;
+  private float leftKneeY_start = 0;
+  private float rightKneeY_start = 0;
+  private float midKneeX_start = 0;
+  private float midKneeY_start = 0;
+  // 眼睛 x/y 坐标 - start
+  private float leftEyeX_start = 0;
+  private float rightEyeX_start = 0;
+  private float leftEyeY_start = 0;
+  private float rightEyeY_start = 0;
+  private float midEyeX_start = 0;
+  private float midEyeY_start = 0;
+
   private int quickFallAndNotReachGroundFlag = 0;
+  private int headToGroundFlag = 0;
   boolean isOpenDialDialog = false;
   private boolean flag = false;
   private GraphDatabase graphDatabase;
@@ -153,11 +163,11 @@ public class MainActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-
     initPermission();
 
     mDatabase = ContactDatabase.getInstance(this);
     graphDatabase = GraphDatabase.getInstance(this);
+    recordDatabase = RecordDatabase.getInstance(this);
 
     warningIfNoContact();
 
@@ -222,11 +232,11 @@ public class MainActivity extends AppCompatActivity {
       builder
               .setTitle("设置紧急联系人")
               .setMessage("你还未设置紧急联系人，是否前往设置？")
-              .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+              .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                  flag = false;
-                  startActivity(new Intent(MainActivity.this, ContactListView.class));
+//                  flag = false;
+//                  startActivity(new Intent(MainActivity.this, ContactListView.class));
                 }
               })
               .setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -293,6 +303,9 @@ public class MainActivity extends AppCompatActivity {
     Size viewSize = computeViewSize(width, height);
     Size displaySize = cameraHelper.computeDisplaySizeFromViewSize(viewSize);
     boolean isCameraRotated = cameraHelper.isCameraRotated();
+
+//    Toast.makeText(this, "" + displaySize.getWidth() + " - " + displaySize.getHeight(), Toast.LENGTH_SHORT).show();
+
     // 将转换器连接到相机预览帧作为其输入（通过previewFrameTexture），并将输出宽度和高度配置为计算的显示大小
     converter.setSurfaceTextureAndAttachToGLContext(
             previewFrameTexture,
@@ -341,6 +354,8 @@ public class MainActivity extends AppCompatActivity {
       poseMarkers.add(marker);
     }
 
+    double bodyAngle = getAngle(poseMarkers.get(12), poseMarkers.get(24), poseMarkers.get(26));
+
     if (frame == 0) {
       // 左肩 x/y 坐标 - start
       leftShoulderX_start = poseMarkers.get(11).x;
@@ -368,6 +383,22 @@ public class MainActivity extends AppCompatActivity {
       // 两髋中心点 - start
       midHipX_start = (leftHipX_start + rightHipX_start) / 2;
       midHipY_start = (leftHipY_start + rightHipY_start) / 2;
+      // 膝盖 x/y 坐标 - start
+      leftKneeX_start = poseMarkers.get(25).x;
+      rightKneeX_start = poseMarkers.get(26).x;
+      leftKneeY_start = poseMarkers.get(25).y;
+      rightKneeY_start = poseMarkers.get(26).y;
+      // 两膝中心点 - start
+      midKneeX_start = (leftKneeX_start + rightKneeX_start) / 2;
+      midKneeY_start = (leftKneeY_start + rightKneeY_start) / 2;
+      // 眼睛 x/y 坐标 - start
+      leftEyeX_start = poseMarkers.get(2).x;
+      rightEyeX_start = poseMarkers.get(5).x;
+      leftEyeY_start = poseMarkers.get(2).y;
+      rightEyeY_start = poseMarkers.get(5).y;
+      // 两眼中心点 - start
+      midEyeX_start = (leftEyeX_start + rightEyeX_start) / 2;
+      midEyeY_start = (leftEyeY_start + rightEyeY_start) / 2;
     }
     frame += 1;
     // 每 10 帧一次
@@ -401,25 +432,44 @@ public class MainActivity extends AppCompatActivity {
           // 两髋中心点 - end
           float midHipX_end = (leftHipX_end + rightHipX_end) / 2;
           float midHipY_end = (leftHipY_end + rightHipY_end) / 2;
+          // 左右膝 x/y 坐标 - end
+          float leftKneeX_end = poseMarkers.get(25).x;
+          float rightKneeX_end = poseMarkers.get(26).x;
+          float leftKneeY_end = poseMarkers.get(25).y;
+          float rightKneeY_end = poseMarkers.get(26).y;
+          // 两膝中心点 - end
+          float midKneeX_end = (leftKneeX_end + rightHipX_end) / 2;
+          float midKneeY_end = (leftKneeY_end + rightKneeY_end) / 2;
+          // 左右眼 x/y 坐标 - end
+          float leftEyeX_end = poseMarkers.get(2).x;
+          float rightEyeX_end = poseMarkers.get(5).x;
+          float leftEyeY_end = poseMarkers.get(2).y;
+          float rightEyeY_end = poseMarkers.get(5).y;
+          // 两眼中心点 - end
+          float midEyeX_end = (leftEyeX_end + rightEyeX_end) / 2;
+          float midEyeY_end = (leftEyeY_end + rightEyeY_end) / 2;
 
           // 两肩中心点在10s内的变化
-          double v = Math.abs(Math.sqrt(
-                  Math.pow(midShoulderX_start - midShoulderX_end, 2) + Math.pow(midShoulderY_start - midShoulderY_end, 2)));
+          double v = Math.sqrt(
+                  Math.pow(midShoulderX_start - midShoulderX_end, 2) + Math.pow(midShoulderY_start - midShoulderY_end, 2));
           // 脚跟到肩中心点在10s内的变化 - 人的近似感知高度
-          double seeHeight = Math.abs(Math
-                  .sqrt(Math.pow(midHeelX_end - midShoulderX_start, 2) + Math.pow(midHeelY_end - midShoulderY_start, 2)));
+          double seeHeight = Math
+                  .sqrt(Math.pow(midHeelX_end - midShoulderX_start, 2) + Math.pow(midHeelY_end - midShoulderY_start, 2));
           // (两肩中心点在10s内的变化)/(脚跟到肩中心点在10s内的变化)
           double radio = v / seeHeight;
-
-          // 两髋中心点在10s内的变化
-          double hipToHeelHeight = Math.abs(midHipY_end - midHeelY_end);
+          // 两髋中心点到两脚跟中心点在10s内的变化
+          double hipToHeelHeight = Math.sqrt(Math.pow(midHeelY_end - midHeelY_start, 2) + Math.pow(midHipY_end - midHipY_start, 2));
           double radio_hip = hipToHeelHeight / seeHeight;
+          // 髋部到地面距离
+          double hipAndHeelDistance = (midHeelY_end - midHipY_end) / seeHeight;
+          // 当为跪状时立即报警
+          double kneeToHeelDistance = midHeelY_end - midKneeY_end;
 
-          // 当出现突然跌倒情况时，立即报警
-          if (radio_hip < 0.27 && radio > 0.25) {
+          // 跪状时报警
+          if (kneeToHeelDistance <= 0) {
             if (!isOpenDialDialog) {
-              isOpenDialDialog = true;
               saveImage();
+              isOpenDialDialog = true;
               try {
                 saveGraphData();
               } catch (Exception e) {
@@ -427,33 +477,54 @@ public class MainActivity extends AppCompatActivity {
               }
               callForHelp();
             }
+          }
+
+          // 当髋与肩加速度较大且身体角度弓到一定角度后，开启定时，当3s内髋部离地较近时，则为跌倒
+          if (quickFallAndNotReachGroundFlag > 0) {
+            quickFallAndNotReachGroundFlag += 1;
+          }
+          // 如果检测到弯腰下蹲姿势，进入下一轮判断。并且如果 quickFallAndNotReachGroundFlag 不等于 1 的情况下能加速判断
+          if (radio_hip > 0.22 && radio > 0.27 && bodyAngle < 120) {
+            quickFallAndNotReachGroundFlag += 1;
+          }
+          // 大约4.2s内
+          if (quickFallAndNotReachGroundFlag >= 6) {
+            if (hipAndHeelDistance <= 0.15) {
+              if (!isOpenDialDialog) {
+                saveImage();
+                isOpenDialDialog = true;
+                try {
+                  saveGraphData();
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+                callForHelp();
+              }
+            }
             quickFallAndNotReachGroundFlag = 0;
           }
 
-          // 当快速下落时，这时设置一个判断条件，3s 内如果髋中心点与脚跟中心点距离小于一个阈值，则报警
-          if (radio > 0.25 && quickFallAndNotReachGroundFlag == 0) {
-            quickFallAndNotReachGroundFlag += 1;
+          // 当髋部距离地面较近时，开启计数器，当大约3-4s内如果头部距离仍是很近的话，则报警
+          if (headToGroundFlag > 0) {
+            headToGroundFlag += 1;
           }
-          if (quickFallAndNotReachGroundFlag > 0) {
-            quickFallAndNotReachGroundFlag += 1;
-            // each frame == 0.7s
-            if (quickFallAndNotReachGroundFlag <= 5) {
-              if (radio_hip < 0.27) {
-                quickFallAndNotReachGroundFlag = 0;
-                if (!isOpenDialDialog) {
-                  isOpenDialDialog = true;
-                  saveImage();
-                  try {
-                    saveGraphData();
-                  } catch (Exception e) {
-                    e.printStackTrace();
-                  }
-                  callForHelp();
+          if (hipAndHeelDistance <= 0.15) {
+            headToGroundFlag += 1;
+          }
+          if (headToGroundFlag >= 8) {
+            if (midEyeY_end - midHeelY_end < 0.1) {
+              if (!isOpenDialDialog) {
+                saveImage();
+                isOpenDialDialog = true;
+                try {
+                  saveGraphData();
+                } catch (Exception e) {
+                  e.printStackTrace();
                 }
+                callForHelp();
               }
-            } else {
-              quickFallAndNotReachGroundFlag = 0;
             }
+            headToGroundFlag = 0;
           }
         }
       });
@@ -490,6 +561,9 @@ public class MainActivity extends AppCompatActivity {
 
   // 拍照 TODO
   private void saveImage() {
+//    File file = new File(getExternalMediaDirs()[0], System.currentTimeMillis() + ".jpg");
+//    Log.e(TAG, "saveImage: " + file.getAbsolutePath());
+//
 //    cameraHelper.takePicture(file, new ImageCapture.OnImageSavedCallback() {
 //      @Override
 //      public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
@@ -518,6 +592,14 @@ public class MainActivity extends AppCompatActivity {
                   public void onClick(DialogInterface dialogInterface, int i) {
                     isOpenDialDialog = false;
 
+                    if (recordDatabase.getRecordDao().getRecords().size() == 0) {
+                      recordDatabase.getRecordDao().insertWrongWarningItem(new Record(1, 0));
+                    } else {
+                      Record record = recordDatabase.getRecordDao().getRecords().get(0);
+                      record.setWarningTimes(record.getWarningTimes() + 1);
+                      recordDatabase.getRecordDao().updateWarningTimes(record);
+                    }
+
                     SmsManager smsManager = SmsManager.getDefault();
                     String message = "test";
                     smsManager.sendTextMessage(phone, null, message, null, null);
@@ -529,10 +611,23 @@ public class MainActivity extends AppCompatActivity {
                     }
                   }
                 })
-                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                .setNegativeButton("这是误报", new DialogInterface.OnClickListener() {
                   @Override
                   public void onClick(DialogInterface dialogInterface, int i) {
                     isOpenDialDialog = false;
+
+                    if (recordDatabase.getRecordDao().getRecords().size() == 0) {
+                      recordDatabase.getRecordDao().insertWrongWarningItem(new Record(1, 1));
+                    } else {
+                      Record record = recordDatabase.getRecordDao().getRecords().get(0);
+                      record.setWrongWarningTimes(record.getWrongWarningTimes() + 1);
+                      record.setWarningTimes(record.getWarningTimes() + 1);
+                      recordDatabase.getRecordDao().updateWrongWarningTimes(record);
+                      recordDatabase.getRecordDao().updateWarningTimes(record);
+                    }
+//                    Toast.makeText(MainActivity.this, "" + record.getWrongWarningTimes(), Toast.LENGTH_SHORT).show();
+//                    record.setWrongWarningTimes(record.getWrongWarningTimes() + 1);
+//                    recordDatabase.getRecordDao().updateWrongWarningTimes(record);
                   }
                 })
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -576,5 +671,17 @@ public class MainActivity extends AppCompatActivity {
     if (mPermissionList.size() > 0) {
       ActivityCompat.requestPermissions(this, permissions, mRequestCode);
     }
+  }
+
+  static double getAngle(PoseLandMark firstPoint, PoseLandMark midPoint, PoseLandMark lastPoint) {
+    double result =
+            Math.toDegrees(
+                    Math.atan2(lastPoint.getY() - midPoint.getY(), lastPoint.getX() - midPoint.getX())
+                            - Math.atan2(firstPoint.getY() - midPoint.getY(), firstPoint.getX() - midPoint.getX()));
+    result = Math.abs(result); // Angle should never be negative
+    if (result > 180) {
+      result = (360.0 - result); // Always get the acute representation of the angle
+    }
+    return result;
   }
 }

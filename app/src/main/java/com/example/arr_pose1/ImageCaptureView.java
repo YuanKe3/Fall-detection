@@ -26,8 +26,10 @@ import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItemV2;
 import com.amap.api.services.poisearch.PoiResultV2;
 import com.amap.api.services.poisearch.PoiSearchV2;
-import com.example.arr_pose1.room.Graph;
-import com.example.arr_pose1.room.GraphDatabase;
+import com.example.arr_pose1.room.Graph.Graph;
+import com.example.arr_pose1.room.Graph.GraphDatabase;
+import com.example.arr_pose1.room.Record.Record;
+import com.example.arr_pose1.room.Record.RecordDatabase;
 import com.google.gson.Gson;
 
 import java.time.Instant;
@@ -46,6 +48,7 @@ public class ImageCaptureView extends AppCompatActivity {
   private AMap aMap;
   private MyLocationStyle myLocationStyle;
   private GraphDatabase graphDatabase;
+  private RecordDatabase recordDatabase;
   private List<Graph> graphList;
   private String[] x = new String[7];
   private int[] y = new int[7];
@@ -59,6 +62,7 @@ public class ImageCaptureView extends AppCompatActivity {
     setContentView(R.layout.activity_image_capture);
 
     graphDatabase = GraphDatabase.getInstance(this);
+    recordDatabase = RecordDatabase.getInstance(this);
 
     hashMap = new HashMap<>();
     hashMap.put("MONDAY", "周一");
@@ -136,7 +140,7 @@ public class ImageCaptureView extends AppCompatActivity {
                     // 输出最近的一个点的名称和坐标
                     TextView locationView = findViewById(R.id.location);
                     TextView longitudeAndLatitude = findViewById(R.id.longitudeAndLatitude);
-                    String txt1 = "你当前位于：" + poiName + " 附近";
+                    String txt1 = "上为七日内摔倒时的地点标点。你当前位于：" + poiName + " 附近";
                     String txt2 = "纬度：" + poiLatitude + "，经度：" + poiLongitude;
                     locationView.setText(txt1);
                     longitudeAndLatitude.setText(txt2);
@@ -212,6 +216,11 @@ public class ImageCaptureView extends AppCompatActivity {
       }
     }
 
+    // 初始化
+    if (recordDatabase.getRecordDao().getRecords().size() == 0) {
+      recordDatabase.getRecordDao().insertWrongWarningItem(new Record(0, 0));
+    }
+
     // 图表
     WebView webView = findViewById(R.id.ordercharts_main);
     webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
@@ -241,6 +250,16 @@ public class ImageCaptureView extends AppCompatActivity {
     @JavascriptInterface
     public String y() {
       return gson.toJson(y);
+    }
+
+    @JavascriptInterface
+    public int rightValue() {
+      return recordDatabase.getRecordDao().getRecords().get(0).getWarningTimes() - recordDatabase.getRecordDao().getRecords().get(0).getWrongWarningTimes();
+    }
+
+    @JavascriptInterface
+    public int wrongValue() {
+      return recordDatabase.getRecordDao().getRecords().get(0).getWrongWarningTimes();
     }
   }
 
