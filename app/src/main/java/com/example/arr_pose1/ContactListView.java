@@ -210,7 +210,7 @@ public class ContactListView extends AppCompatActivity {
       viewHolder.nameTextView.setText(contact.getName());
       viewHolder.numberTextView.setText(contact.getPhone());
       if (position == mSelectedPosition) {
-        view.setBackgroundColor(Color.parseColor("#e6ecff"));
+        view.setBackgroundColor(Color.parseColor("#eeeeee"));
       } else {
         view.setBackgroundColor(Color.TRANSPARENT);
       }

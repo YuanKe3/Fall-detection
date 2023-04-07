@@ -1,12 +1,15 @@
 package com.example.arr_pose1;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,12 +29,16 @@ import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItemV2;
 import com.amap.api.services.poisearch.PoiResultV2;
 import com.amap.api.services.poisearch.PoiSearchV2;
+import com.example.arr_pose1.model.SendMailData;
 import com.example.arr_pose1.room.Graph.Graph;
 import com.example.arr_pose1.room.Graph.GraphDatabase;
 import com.example.arr_pose1.room.Record.Record;
 import com.example.arr_pose1.room.Record.RecordDatabase;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 
+import java.io.File;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -53,6 +60,12 @@ public class ImageCaptureView extends AppCompatActivity {
   private String[] x = new String[7];
   private int[] y = new int[7];
   private HashMap<String, String> hashMap;
+  private TextView fallTimesTxt;
+  private TextView wrongTimesTxt;
+  private TextView wrongRateTxt;
+  private TextView recordTimesTxt;
+  private FloatingActionButton sendBtn;
+  private String poiName = "";
 
   @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
   @Override
@@ -60,6 +73,12 @@ public class ImageCaptureView extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     overridePendingTransition(R.anim.bottom_in, R.anim.bottom_silent);
     setContentView(R.layout.activity_image_capture);
+
+    fallTimesTxt = findViewById(R.id.fallTimesTxt);
+    wrongTimesTxt = findViewById(R.id.wrongTimesTxt);
+    wrongRateTxt = findViewById(R.id.wrongRateTxt);
+    recordTimesTxt = findViewById(R.id.recordTimesTxt);
+    sendBtn = findViewById(R.id.fab_send);
 
     graphDatabase = GraphDatabase.getInstance(this);
     recordDatabase = RecordDatabase.getInstance(this);
@@ -133,7 +152,7 @@ public class ImageCaptureView extends AppCompatActivity {
                     // 取出距离当前位置最近的一个 POI 点，即第一个 POI 点
                     PoiItemV2 poiItem = poiItemList.get(0);
                     // 获取该 POI 点的名称和坐标信息
-                    String poiName = poiItem.getTitle();
+                    poiName = poiItem.getTitle();
                     LatLonPoint poiLaLonPoint = poiItem.getLatLonPoint();
                     double poiLatitude = poiLaLonPoint.getLatitude();
                     double poiLongitude = poiLaLonPoint.getLongitude();
@@ -144,6 +163,20 @@ public class ImageCaptureView extends AppCompatActivity {
                     String txt2 = "纬度：" + poiLatitude + "，经度：" + poiLongitude;
                     locationView.setText(txt1);
                     longitudeAndLatitude.setText(txt2);
+
+                    int warningTimes = recordDatabase.getRecordDao().getRecords().get(0).getWarningTimes();
+                    int wrongTimes = recordDatabase.getRecordDao().getRecords().get(0).getWrongWarningTimes();
+                    int recordTimes = graphList.size();
+                    fallTimesTxt.setText(String.valueOf(warningTimes));
+                    wrongTimesTxt.setText(String.valueOf(wrongTimes));
+                    double warningTimesD = Double.parseDouble(String.valueOf(warningTimes));
+                    double wrongTimesD = Double.parseDouble(String.valueOf(wrongTimes));
+                    double wrongRate = wrongTimesD / warningTimesD;
+                    NumberFormat nt = NumberFormat.getPercentInstance();
+                    nt.setMinimumFractionDigits(2);
+                    String result = nt.format(wrongRate);
+                    wrongRateTxt.setText(result);
+                    recordTimesTxt.setText(String.valueOf(recordTimes));
                   }
                 }
 
@@ -220,6 +253,28 @@ public class ImageCaptureView extends AppCompatActivity {
     if (recordDatabase.getRecordDao().getRecords().size() == 0) {
       recordDatabase.getRecordDao().insertWrongWarningItem(new Record(0, 0));
     }
+
+    sendBtn.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        int warningTimes = recordDatabase.getRecordDao().getRecords().get(0).getWarningTimes();
+        int wrongTimes = recordDatabase.getRecordDao().getRecords().get(0).getWrongWarningTimes();
+//        SendMailData mailData = new SendMailData();
+
+//        Gson gson = new Gson();
+
+//        File file = new File();
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+//        emailIntent.setType("application/octet-stream");
+        emailIntent.setType("text/plain");
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "统计数据");
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{"cctvyxy@qq.com"});
+        emailIntent.putExtra(Intent.EXTRA_TEXT, "报警次数: " + warningTimes +  "\n" + "误报次数: " + wrongTimes + "\n" + "邮箱发送地址: " + poiName);
+//        emailIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
+        startActivity(Intent.createChooser(emailIntent, "统计数据 - 通过邮件发送"));
+      }
+    });
+
 
     // 图表
     WebView webView = findViewById(R.id.ordercharts_main);

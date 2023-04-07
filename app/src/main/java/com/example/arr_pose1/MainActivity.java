@@ -303,9 +303,6 @@ public class MainActivity extends AppCompatActivity {
     Size viewSize = computeViewSize(width, height);
     Size displaySize = cameraHelper.computeDisplaySizeFromViewSize(viewSize);
     boolean isCameraRotated = cameraHelper.isCameraRotated();
-
-//    Toast.makeText(this, "" + displaySize.getWidth() + " - " + displaySize.getHeight(), Toast.LENGTH_SHORT).show();
-
     // 将转换器连接到相机预览帧作为其输入（通过previewFrameTexture），并将输出宽度和高度配置为计算的显示大小
     converter.setSurfaceTextureAndAttachToGLContext(
             previewFrameTexture,

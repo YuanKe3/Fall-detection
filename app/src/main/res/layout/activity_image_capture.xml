@@ -1,51 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:paddingBottom="15dp"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto"
-      xmlns:tools="http://schemas.android.com/tools"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:orientation="vertical"
-      tools:context=".ImageCaptureView">
+      android:paddingBottom="15dp">
 
-    <WebView
-        android:id="@+id/ordercharts_main"
-        android:layout_marginBottom="20dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-
-    <com.amap.api.maps.MapView
-        android:id="@+id/map"
-        android:layout_margin="5dp"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="300dp" />
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="5dp"
-        android:background="@drawable/round_tip2"
-        android:gravity="center"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="10dp">
+        tools:context=".ImageCaptureView">
 
-      <TextView
-          android:id="@+id/location"
+      <WebView
+          android:id="@+id/ordercharts_main"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text=""
-          android:textSize="20sp" />
+          android:layout_marginBottom="20dp" />
 
-      <TextView
-          android:id="@+id/longitudeAndLatitude"
-          android:layout_width="wrap_content"
+      <TableLayout
+          android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:text="" />
+          android:divider="@drawable/line_h"
+          android:orientation="vertical"
+          android:padding="16dp"
+          android:layout_marginBottom="50dp"
+          android:showDividers="beginning|middle|end">
+
+        <TableRow
+            android:divider="@drawable/line_h"
+            android:gravity="center"
+            android:showDividers="beginning|middle|end">
+
+          <TextView
+              android:padding="8dp"
+              android:text="摔倒次数"
+              android:textSize="18sp"
+              android:textStyle="bold" />
+
+          <TextView
+              android:padding="8dp"
+              android:text="误报次数"
+              android:textSize="18sp"
+              android:textStyle="bold" />
+
+          <TextView
+              android:padding="8dp"
+              android:text="误报率"
+              android:textSize="18sp"
+              android:textStyle="bold" />
+        </TableRow>
+
+        <TableRow
+            android:divider="@drawable/line_h"
+            android:gravity="center"
+            android:showDividers="beginning|middle|end">
+
+          <TextView
+              android:id="@+id/fallTimesTxt"
+              android:padding="8dp"
+              android:text=""
+              android:textSize="16sp" />
+
+          <TextView
+              android:id="@+id/wrongTimesTxt"
+              android:padding="8dp"
+              android:text=""
+              android:textSize="16sp" />
+
+          <TextView
+              android:id="@+id/wrongRateTxt"
+              android:padding="8dp"
+              android:text=""
+              android:textSize="16sp" />
+        </TableRow>
+      </TableLayout>
+
+      <View
+          android:layout_width="match_parent"
+          android:layout_height="1dp"
+          android:background="#eee"
+          android:layout_marginBottom="50dp"
+        />
+
+      <com.amap.api.maps.MapView
+          android:id="@+id/map"
+          android:layout_width="match_parent"
+          android:layout_height="300dp"
+          android:layout_marginBottom="30dp" />
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_gravity="center"
+          android:layout_margin="5dp"
+          android:gravity="center"
+          android:orientation="vertical"
+          android:padding="10dp">
+
+        <TextView
+            android:id="@+id/location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/longitudeAndLatitude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:text="" />
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:divider="@drawable/line_h"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginBottom="20dp"
+            android:showDividers="beginning|middle|end">
+
+          <TableRow
+              android:divider="@drawable/line_h"
+              android:gravity="center"
+              android:showDividers="beginning|middle|end">
+
+            <TextView
+                android:padding="8dp"
+                android:text="七日内标点数量"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+          </TableRow>
+
+          <TableRow
+              android:divider="@drawable/line_h"
+              android:gravity="center"
+              android:showDividers="beginning|middle|end">
+
+            <TextView
+                android:id="@+id/recordTimesTxt"
+                android:padding="8dp"
+                android:text=""
+                android:textSize="16sp" />
+
+          </TableRow>
+        </TableLayout>
+      </LinearLayout>
     </LinearLayout>
-  </LinearLayout>
-</ScrollView>
+  </ScrollView>
+
+  <com.google.android.material.floatingactionbutton.FloatingActionButton
+      android:id="@+id/fab_send"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="end|bottom"
+      android:layout_marginRight="16dp"
+      android:layout_marginBottom="30dp"
+      android:src="@drawable/baseline_email_24" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+
+
+
