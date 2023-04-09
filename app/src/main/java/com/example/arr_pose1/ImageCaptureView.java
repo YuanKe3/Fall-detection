@@ -32,6 +32,8 @@ import com.amap.api.services.poisearch.PoiSearchV2;
 import com.example.arr_pose1.model.SendMailData;
 import com.example.arr_pose1.room.Graph.Graph;
 import com.example.arr_pose1.room.Graph.GraphDatabase;
+import com.example.arr_pose1.room.PersonInfo.PersonInfo;
+import com.example.arr_pose1.room.PersonInfo.PersonInfoDatabase;
 import com.example.arr_pose1.room.Record.Record;
 import com.example.arr_pose1.room.Record.RecordDatabase;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -56,6 +58,7 @@ public class ImageCaptureView extends AppCompatActivity {
   private MyLocationStyle myLocationStyle;
   private GraphDatabase graphDatabase;
   private RecordDatabase recordDatabase;
+  private PersonInfoDatabase personInfoDatabase;
   private List<Graph> graphList;
   private String[] x = new String[7];
   private int[] y = new int[7];
@@ -82,6 +85,7 @@ public class ImageCaptureView extends AppCompatActivity {
 
     graphDatabase = GraphDatabase.getInstance(this);
     recordDatabase = RecordDatabase.getInstance(this);
+    personInfoDatabase = PersonInfoDatabase.getInstance(this);
 
     hashMap = new HashMap<>();
     hashMap.put("MONDAY", "周一");
@@ -251,7 +255,7 @@ public class ImageCaptureView extends AppCompatActivity {
 
     // 初始化
     if (recordDatabase.getRecordDao().getRecords().size() == 0) {
-      recordDatabase.getRecordDao().insertWrongWarningItem(new Record(0, 0));
+      recordDatabase.getRecordDao().insertWrongWarningItem(new Record(0, 0, 0, 0, 0, 0, 0, 0));
     }
 
     sendBtn.setOnClickListener(new View.OnClickListener() {
@@ -259,17 +263,37 @@ public class ImageCaptureView extends AppCompatActivity {
       public void onClick(View v) {
         int warningTimes = recordDatabase.getRecordDao().getRecords().get(0).getWarningTimes();
         int wrongTimes = recordDatabase.getRecordDao().getRecords().get(0).getWrongWarningTimes();
-//        SendMailData mailData = new SendMailData();
 
-//        Gson gson = new Gson();
+        List<PersonInfo> personInfoList = personInfoDatabase.getPersonInfoDao().getAllPersonInfo();
+        PersonInfo personInfo = personInfoList.size() != 0 ? personInfoList.get(0) : null;
+        List<Record> recordList = recordDatabase.getRecordDao().getRecords();
+        Record record = recordList.size() != 0 ? recordList.get(0) : null;
 
-//        File file = new File();
+        String address = personInfo != null ? personInfo.getAddress() : "";
+        int kneeSettingAlgorithmTimes = record != null ? record.getKneeSettingAlgorithm() : 0;
+        int wrongKneeSettingAlgorithmTimes = record != null ? record.getWrongKneeSettingAlgorithm() : 0;
+        int mainAlgorithmTimes = record != null ? record.getMainAlgorithm() : 0;
+        int wrongMainAlgorithmTimes = record != null ? record.getWrongMainAlgorithm() : 0;
+        int lieDownAlgorithmTimes = record != null ? record.getLieDownAlgorithm() : 0;
+        int wrongLieDownAlgorithmTimes = record != null ? record.getWrongLieDownAlgorithm() : 0;
+
         Intent emailIntent = new Intent(Intent.ACTION_SEND);
 //        emailIntent.setType("application/octet-stream");
         emailIntent.setType("text/plain");
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, "统计数据");
         emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{"cctvyxy@qq.com"});
-        emailIntent.putExtra(Intent.EXTRA_TEXT, "报警次数: " + warningTimes +  "\n" + "误报次数: " + wrongTimes + "\n" + "邮箱发送地址: " + poiName);
+        emailIntent.putExtra(
+                Intent.EXTRA_TEXT, "报警次数: " + warningTimes + "\n"
+                        + "误报次数: " + wrongTimes + "\n"
+                        + "邮箱发送地址: " + poiName + "\n"
+                        + "家庭住址: " + address + "\n"
+                        + "加速度、角度联合判断算法使用次数: " + mainAlgorithmTimes + "\n"
+                        + "加速度、角度联合判断算法误报次数: " + wrongMainAlgorithmTimes + "\n"
+                        + "跪坐判断算法使用次数: " + kneeSettingAlgorithmTimes + "\n"
+                        + "跪坐判断算法误报次数: " + wrongKneeSettingAlgorithmTimes + "\n"
+                        + "髋部长时间着地算法使用次数: " + lieDownAlgorithmTimes + "\n"
+                        + "髋部长时间着地算法误报次数: " + wrongLieDownAlgorithmTimes
+        );
 //        emailIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
         startActivity(Intent.createChooser(emailIntent, "统计数据 - 通过邮件发送"));
       }

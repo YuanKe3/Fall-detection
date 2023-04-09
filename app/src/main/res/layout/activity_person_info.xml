@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="5dp">
+
+  <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="姓名" />
+
+  <EditText
+      android:id="@+id/nameEditText"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:hint="请输入姓名"
+      android:textColorHint="#ffabb2bf" />
+
+  <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="年龄" />
+
+  <EditText
+      android:id="@+id/ageEditText"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:hint="请输入年龄"
+      android:inputType="number"
+      android:textColorHint="#ffabb2bf" />
+
+  <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="疾病史" />
+
+  <EditText
+      android:id="@+id/diseaseEditText"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:hint="请输入疾病史"
+      android:textColorHint="#ffabb2bf" />
+
+  <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="过敏史" />
+
+  <EditText
+      android:id="@+id/allergyEditText"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:hint="请输入过敏史"
+      android:textColorHint="#ffabb2bf" />
+
+  <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="地址" />
+
+  <EditText
+      android:id="@+id/addressEditText"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:hint="请输入地址"
+      android:textColorHint="#ffabb2bf" />
+
+  <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="补充内容(选填)" />
+
+  <EditText
+      android:id="@+id/otherEditText"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:hint="请输入补充内容"
+      android:textColorHint="#ffabb2bf" />
+
+  <Button
+      android:id="@+id/saveInfoBtn"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="保存" />
+
+  <Button
+      android:id="@+id/resetInfoBtn"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="重置" />
+
+</LinearLayout>

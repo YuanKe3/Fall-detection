@@ -34,6 +34,10 @@
       android:supportsRtl="true"
       android:theme="@style/Theme.MyApplication">
     <activity
+        android:name=".PersonInfo"
+        android:label="信息填写"
+        android:exported="false" />
+    <activity
         android:name=".HealthNewsDetail"
         android:exported="false"
         android:label="文章详情" />

@@ -16,10 +16,7 @@ public interface RecordDao {
   void insertWarningItem(Record record);
 
   @Update
-  void updateWrongWarningTimes(Record record);
-
-  @Update
-  void updateWarningTimes(Record record);
+  void updateRecord(Record record);
 
   @Query("SELECT * FROM Record")
   List<Record> getRecords();

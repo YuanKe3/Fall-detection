@@ -29,9 +29,15 @@ import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
+import com.amap.api.services.core.AMapException;
+import com.amap.api.services.core.LatLonPoint;
+import com.amap.api.services.core.PoiItemV2;
+import com.amap.api.services.poisearch.PoiResultV2;
+import com.amap.api.services.poisearch.PoiSearchV2;
 import com.example.arr_pose1.room.Contact.ContactDatabase;
 import com.example.arr_pose1.room.Graph.Graph;
 import com.example.arr_pose1.room.Graph.GraphDatabase;
+import com.example.arr_pose1.room.PersonInfo.PersonInfoDatabase;
 import com.example.arr_pose1.room.Record.Record;
 import com.example.arr_pose1.room.Record.RecordDatabase;
 import com.google.mediapipe.components.CameraHelper;
@@ -85,10 +91,13 @@ public class MainActivity extends AppCompatActivity {
   private TextView contactTxt;
   private TextView captureTxt;
   private TextView healthTxt;
+  private TextView personTxt;
   private TextView chatTxt;
 
   private ContactDatabase mDatabase;
   private RecordDatabase recordDatabase;
+  private PersonInfoDatabase personInfoDatabase;
+  private String poiName;
 
   // 权限管理
   // 1.本 Activity 需要申请两个权限：发信息和写入存储
@@ -156,8 +165,9 @@ public class MainActivity extends AppCompatActivity {
   private int quickFallAndNotReachGroundFlag = 0;
   private int headToGroundFlag = 0;
   boolean isOpenDialDialog = false;
-  private boolean flag = false;
+  public boolean flag = false;
   private GraphDatabase graphDatabase;
+  public boolean alFlag = false;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -168,13 +178,25 @@ public class MainActivity extends AppCompatActivity {
     mDatabase = ContactDatabase.getInstance(this);
     graphDatabase = GraphDatabase.getInstance(this);
     recordDatabase = RecordDatabase.getInstance(this);
+    personInfoDatabase = PersonInfoDatabase.getInstance(this);
 
     warningIfNoContact();
 
     contactTxt = findViewById(R.id.contactTxt);
     captureTxt = findViewById(R.id.captureTxt);
     healthTxt = findViewById(R.id.healthTxt);
+    personTxt = findViewById(R.id.personTxt);
 
+    // 权限申明
+    AMapLocationClient.updatePrivacyShow(this, true, true);
+    AMapLocationClient.updatePrivacyAgree(this, true);
+
+    personTxt.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        startActivity(new Intent(MainActivity.this, PersonInfo.class));
+      }
+    });
     contactTxt.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -225,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
             });
   }
 
-  private void warningIfNoContact() {
+  public void warningIfNoContact() {
     if (mDatabase.getContactDao().getAllContact().size() == 0 && !flag) {
       flag = true;
       AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -463,75 +485,92 @@ public class MainActivity extends AppCompatActivity {
           double kneeToHeelDistance = midHeelY_end - midKneeY_end;
 
           // 跪状时报警
-          if (kneeToHeelDistance <= 0) {
-            if (!isOpenDialDialog) {
-              saveImage();
-              isOpenDialDialog = true;
-              try {
-                saveGraphData();
-              } catch (Exception e) {
-                e.printStackTrace();
+          if (!alFlag) {
+            if (kneeToHeelDistance <= 0) {
+              if (!isOpenDialDialog) {
+                saveImage();
+                isOpenDialDialog = true;
+                try {
+                  saveGraphData();
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+                callForHelp("kneeSetting");
+                alFlag = true;
               }
-              callForHelp();
             }
           }
 
           // 当髋与肩加速度较大且身体角度弓到一定角度后，开启定时，当3s内髋部离地较近时，则为跌倒
-          if (quickFallAndNotReachGroundFlag > 0) {
-            quickFallAndNotReachGroundFlag += 1;
-          }
-          // 如果检测到弯腰下蹲姿势，进入下一轮判断。并且如果 quickFallAndNotReachGroundFlag 不等于 1 的情况下能加速判断
-          if (radio_hip > 0.22 && radio > 0.27 && bodyAngle < 120) {
-            quickFallAndNotReachGroundFlag += 1;
-          }
-          // 大约4.2s内
-          if (quickFallAndNotReachGroundFlag >= 6) {
-            if (hipAndHeelDistance <= 0.15) {
-              if (!isOpenDialDialog) {
-                saveImage();
-                isOpenDialDialog = true;
-                try {
-                  saveGraphData();
-                } catch (Exception e) {
-                  e.printStackTrace();
-                }
-                callForHelp();
-              }
+          if (!alFlag) {
+            if (quickFallAndNotReachGroundFlag > 0) {
+              quickFallAndNotReachGroundFlag += 1;
             }
-            quickFallAndNotReachGroundFlag = 0;
+            // 如果检测到弯腰下蹲姿势，进入下一轮判断。并且如果 quickFallAndNotReachGroundFlag 不等于 1 的情况下能加速判断
+            if (radio_hip > 0.22 && radio > 0.27 && bodyAngle < 120) {
+              quickFallAndNotReachGroundFlag += 1;
+            }
+            // 大约4.2s内
+            if (quickFallAndNotReachGroundFlag >= 6) {
+              if (hipAndHeelDistance <= 0.15) {
+                if (!isOpenDialDialog) {
+                  saveImage();
+                  isOpenDialDialog = true;
+                  try {
+                    saveGraphData();
+                  } catch (Exception e) {
+                    e.printStackTrace();
+                  }
+                  callForHelp("main");
+                }
+              }
+              quickFallAndNotReachGroundFlag = 0;
+              alFlag = true;
+            }
           }
 
+
           // 当髋部距离地面较近时，开启计数器，当大约3-4s内如果头部距离仍是很近的话，则报警
-          if (headToGroundFlag > 0) {
-            headToGroundFlag += 1;
-          }
-          if (hipAndHeelDistance <= 0.15) {
-            headToGroundFlag += 1;
-          }
-          if (headToGroundFlag >= 8) {
-            if (midEyeY_end - midHeelY_end < 0.1) {
-              if (!isOpenDialDialog) {
-                saveImage();
-                isOpenDialDialog = true;
-                try {
-                  saveGraphData();
-                } catch (Exception e) {
-                  e.printStackTrace();
-                }
-                callForHelp();
-              }
+          if (!alFlag) {
+            if (headToGroundFlag > 0) {
+              headToGroundFlag += 1;
             }
-            headToGroundFlag = 0;
+            if (hipAndHeelDistance <= 0.15) {
+              headToGroundFlag += 1;
+            }
+            if (headToGroundFlag >= 8) {
+              if (midEyeY_end - midHeelY_end < 0.1) {
+                if (!isOpenDialDialog) {
+                  saveImage();
+                  isOpenDialDialog = true;
+                  try {
+                    saveGraphData();
+                  } catch (Exception e) {
+                    e.printStackTrace();
+                  }
+                  callForHelp("lieDown");
+                }
+              }
+              headToGroundFlag = 0;
+              alFlag = true;
+            }
           }
+
         }
       });
       frame = 0;
+      alFlag = false;
     }
     return poseLandmarkStr;
   }
 
   // 保存报警时的经纬度和时间戳
   private void saveGraphData() throws Exception {
+    PoiSearchV2.Query query = new PoiSearchV2.Query("", "", "");
+    query.setPageSize(10);
+    query.setPageNum(0);
+    query.setDistanceSort(true);
+
     // 获取经纬度
     final AMapLocationClient mLocationClient = new AMapLocationClient(getApplicationContext());
     AMapLocationClientOption mLocationOption = new AMapLocationClientOption();
@@ -544,13 +583,37 @@ public class MainActivity extends AppCompatActivity {
         if (aMapLocation != null) {
           double latitude = aMapLocation.getLatitude();
           double longitude = aMapLocation.getLongitude();
-          // 获取时间戳
-          long fallTime = System.currentTimeMillis();
-          long oneWeekAgo = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000;
-          graphDatabase.getGraphDao().deleteOneWeekAgoGraph(oneWeekAgo);
-          graphDatabase.getGraphDao().insertOneGraph(new Graph(latitude, longitude, fallTime));
-          mLocationClient.stopLocation();
+
+          LatLonPoint latLonPoint = new LatLonPoint(latitude, longitude);
+          PoiSearchV2.SearchBound searchBound = new PoiSearchV2.SearchBound(latLonPoint, 1000);
+          try {
+            PoiSearchV2 poiSearch = new PoiSearchV2(MainActivity.this, query);
+            poiSearch.setBound(searchBound);
+            poiSearch.setOnPoiSearchListener(new PoiSearchV2.OnPoiSearchListener() {
+              @Override
+              public void onPoiSearched(PoiResultV2 poiResultV2, int i) {
+                ArrayList<PoiItemV2> poiItemList = poiResultV2.getPois();
+                if (poiItemList != null && poiItemList.size() > 0) {
+                  PoiItemV2 poiItem = poiItemList.get(0);
+                  poiName = poiItem.getTitle();
+                }
+                // 获取时间戳
+                long fallTime = System.currentTimeMillis();
+                long oneWeekAgo = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000;
+                graphDatabase.getGraphDao().deleteOneWeekAgoGraph(oneWeekAgo);
+                graphDatabase.getGraphDao().insertOneGraph(new Graph(latitude, longitude, fallTime, poiName));
+              }
+
+              @Override
+              public void onPoiItemSearched(PoiItemV2 poiItemV2, int i) {
+              }
+            });
+            poiSearch.searchPOIAsyn();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
+        mLocationClient.stopLocation();
       }
     });
     mLocationClient.startLocation();
@@ -574,7 +637,7 @@ public class MainActivity extends AppCompatActivity {
 //    });
   }
 
-  private void callForHelp() {
+  private void callForHelp(String type) {
     if (mDatabase.getContactDao().getAllContact().size() == 0) {
       warningIfNoContact();
     }
@@ -589,16 +652,53 @@ public class MainActivity extends AppCompatActivity {
                   public void onClick(DialogInterface dialogInterface, int i) {
                     isOpenDialDialog = false;
 
-                    if (recordDatabase.getRecordDao().getRecords().size() == 0) {
-                      recordDatabase.getRecordDao().insertWrongWarningItem(new Record(1, 0));
-                    } else {
-                      Record record = recordDatabase.getRecordDao().getRecords().get(0);
-                      record.setWarningTimes(record.getWarningTimes() + 1);
-                      recordDatabase.getRecordDao().updateWarningTimes(record);
+                    switch (type) {
+                      case "main": {
+                        if (recordDatabase.getRecordDao().getRecords().size() == 0) {
+                          recordDatabase.getRecordDao().insertWrongWarningItem(new Record(0, 1, 0, 1, 0, 0, 0, 0));
+                        } else {
+                          Record record = recordDatabase.getRecordDao().getRecords().get(0);
+                          record.setWarningTimes(record.getWarningTimes() + 1);
+                          record.setMainAlgorithm(record.getMainAlgorithm() + 1);
+                          recordDatabase.getRecordDao().updateRecord(record);
+                        }
+                      }
+                      case "kneeSetting": {
+                        if (recordDatabase.getRecordDao().getRecords().size() == 0) {
+                          recordDatabase.getRecordDao().insertWrongWarningItem(new Record(0, 1, 1, 0, 0, 0, 0, 0));
+                        } else {
+                          Record record = recordDatabase.getRecordDao().getRecords().get(0);
+                          record.setWarningTimes(record.getWarningTimes() + 1);
+                          record.setKneeSettingAlgorithm(record.getKneeSettingAlgorithm() + 1);
+                          recordDatabase.getRecordDao().updateRecord(record);
+                        }
+                      }
+                      case "lieDown": {
+                        if (recordDatabase.getRecordDao().getRecords().size() == 0) {
+                          recordDatabase.getRecordDao().insertWrongWarningItem(new Record(0, 1, 0, 0, 1, 0, 0, 0));
+                        } else {
+                          Record record = recordDatabase.getRecordDao().getRecords().get(0);
+                          record.setWarningTimes(record.getWarningTimes() + 1);
+                          record.setLieDownAlgorithm(record.getLieDownAlgorithm() + 1);
+                          recordDatabase.getRecordDao().updateRecord(record);
+                        }
+                      }
                     }
 
+
                     SmsManager smsManager = SmsManager.getDefault();
-                    String message = "test";
+                    List<com.example.arr_pose1.room.PersonInfo.PersonInfo> personInfoList = personInfoDatabase.getPersonInfoDao().getAllPersonInfo();
+
+                    com.example.arr_pose1.room.PersonInfo.PersonInfo personInfo = personInfoList.size() != 0 ? personInfoList.get(0) : null;
+                    String name = personInfo != null ? personInfo.getName() : "";
+                    String age = personInfo != null ? personInfo.getAge() : "";
+                    String disease = personInfo != null ? personInfo.getDisease() : "";
+                    String allergy = personInfo != null ? personInfo.getAllergy() : "";
+                    String address = personInfo != null ? personInfo.getAddress() : "";
+                    String other = personInfo != null ? personInfo.getOther() : "";
+                    String message = personInfoDatabase.getPersonInfoDao().getAllPersonInfo().size() != 0
+                            ? name + "老人跌倒了\n位置：" + poiName + "\n年龄：" + age + "岁\n疾病史为：" + disease + "\n过敏史为：" + allergy + "\n补充说明为：" + other
+                            : "老人跌倒了。\n位置是" + poiName;
                     smsManager.sendTextMessage(phone, null, message, null, null);
 
                     Intent intent = new Intent(Intent.ACTION_DIAL);
@@ -613,18 +713,44 @@ public class MainActivity extends AppCompatActivity {
                   public void onClick(DialogInterface dialogInterface, int i) {
                     isOpenDialDialog = false;
 
-                    if (recordDatabase.getRecordDao().getRecords().size() == 0) {
-                      recordDatabase.getRecordDao().insertWrongWarningItem(new Record(1, 1));
-                    } else {
-                      Record record = recordDatabase.getRecordDao().getRecords().get(0);
-                      record.setWrongWarningTimes(record.getWrongWarningTimes() + 1);
-                      record.setWarningTimes(record.getWarningTimes() + 1);
-                      recordDatabase.getRecordDao().updateWrongWarningTimes(record);
-                      recordDatabase.getRecordDao().updateWarningTimes(record);
+                    switch (type) {
+                      case "main": {
+                        if (recordDatabase.getRecordDao().getRecords().size() == 0) {
+                          recordDatabase.getRecordDao().insertWrongWarningItem(new Record(1, 1, 0, 1, 0, 1, 0, 0));
+                        } else {
+                          Record record = recordDatabase.getRecordDao().getRecords().get(0);
+                          record.setWrongWarningTimes(record.getWrongWarningTimes() + 1);
+                          record.setWarningTimes(record.getWarningTimes() + 1);
+                          record.setMainAlgorithm(record.getMainAlgorithm() + 1);
+                          record.setWrongMainAlgorithm(record.getWrongMainAlgorithm() + 1);
+                          recordDatabase.getRecordDao().updateRecord(record);
+                        }
+                      }
+                      case "kneeSetting": {
+                        if (recordDatabase.getRecordDao().getRecords().size() == 0) {
+                          recordDatabase.getRecordDao().insertWrongWarningItem(new Record(1, 1, 1, 0, 0, 0, 1, 0));
+                        } else {
+                          Record record = recordDatabase.getRecordDao().getRecords().get(0);
+                          record.setWrongKneeSettingAlgorithm(record.getWrongKneeSettingAlgorithm() + 1);
+                          record.setWarningTimes(record.getWarningTimes() + 1);
+                          record.setKneeSettingAlgorithm(record.getKneeSettingAlgorithm() + 1);
+                          record.setWrongWarningTimes(record.getWrongWarningTimes() + 1);
+                          recordDatabase.getRecordDao().updateRecord(record);
+                        }
+                      }
+                      case "lieDown": {
+                        if (recordDatabase.getRecordDao().getRecords().size() == 0) {
+                          recordDatabase.getRecordDao().insertWrongWarningItem(new Record(1, 1, 0, 0, 1, 0, 0, 1));
+                        } else {
+                          Record record = recordDatabase.getRecordDao().getRecords().get(0);
+                          record.setWrongWarningTimes(record.getWrongWarningTimes() + 1);
+                          record.setWarningTimes(record.getWarningTimes() + 1);
+                          record.setLieDownAlgorithm(record.getLieDownAlgorithm() + 1);
+                          record.setWrongLieDownAlgorithm(record.getWrongLieDownAlgorithm() + 1);
+                          recordDatabase.getRecordDao().updateRecord(record);
+                        }
+                      }
                     }
-//                    Toast.makeText(MainActivity.this, "" + record.getWrongWarningTimes(), Toast.LENGTH_SHORT).show();
-//                    record.setWrongWarningTimes(record.getWrongWarningTimes() + 1);
-//                    recordDatabase.getRecordDao().updateWrongWarningTimes(record);
                   }
                 })
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {

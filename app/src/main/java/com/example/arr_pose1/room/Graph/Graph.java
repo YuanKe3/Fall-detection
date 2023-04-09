@@ -10,14 +10,24 @@ public class Graph {
   private double latitude;
   private double longitude;
   private long fallTime;
+  private String fallLocation;
 
-  public Graph(double latitude, double longitude, long fallTime) {
+  public Graph(double latitude, double longitude, long fallTime, String fallLocation) {
     this.latitude = latitude;
     this.longitude = longitude;
     this.fallTime = fallTime;
+    this.fallLocation = fallLocation;
   }
 
   public Graph() {}
+
+  public String getFallLocation() {
+    return fallLocation;
+  }
+
+  public void setFallLocation(String fallLocation) {
+    this.fallLocation = fallLocation;
+  }
 
   public int getId() {
     return id;
@@ -58,6 +68,7 @@ public class Graph {
             ", latitude=" + latitude +
             ", longitude=" + longitude +
             ", fallTime=" + fallTime +
+            ", fallLocation='" + fallLocation + '\'' +
             '}';
   }
 }
